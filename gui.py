@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 
 WIDTH = 800
 HEIGHT = 800
@@ -15,6 +16,9 @@ class GUI:
         self.big_font = pygame.font.Font("freesansbold.ttf", 60)
 
         self.images = self.load_images()
+
+        self.tile_size_w = WIDTH // 8
+        self.tile_size_h = HEIGHT // 8
 
     def load_images(self):
         images = {}
@@ -40,6 +44,9 @@ class GUI:
 
         return images
 
+    def get_image_of_piece(self, piece):
+        return self.images[piece.get_name()]
+
     def draw(self, game):
         self.draw_board()
         self.draw_pieces(game)
@@ -59,11 +66,8 @@ class GUI:
 
     def draw_pieces(self, game):
         # White pieces
-        for piece, location in zip(
-            game.white_pieces,
-            game.white_locations
-        ):
-            image = self.images[f"white_{piece}"]
+        for location, piece in game.white_pieces.items():
+            image = self.images[f"white_{piece.type}"]
 
             x = location[0] * 100 + 10
             y = location[1] * 100 + 10
@@ -71,11 +75,8 @@ class GUI:
             self.screen.blit(image, (x, y))
 
         # Black pieces
-        for piece, location in zip(
-            game.black_pieces,
-            game.black_locations
-        ):
-            image = self.images[f"black_{piece}"]
+        for location, piece in game.black_pieces.items():
+            image = self.images[f"black_{piece.type}"]
 
             x = location[0] * 100 + 10
             y = location[1] * 100 + 10

@@ -1,34 +1,47 @@
+import numpy as np
+
 from domain.chesspiece import ChessPiece
 
 class Game:
     def __init__(self):
-        self.white_pieces = [
-            ChessPiece('rook'), ChessPiece('knight'), ChessPiece('bishop'), ChessPiece('king'),
-            ChessPiece('queen'), ChessPiece('bishop'), ChessPiece('knight'), ChessPiece('rook'),
-            ChessPiece('pawn'), ChessPiece('pawn'), ChessPiece('pawn'), ChessPiece('pawn'),
-            ChessPiece('pawn'), ChessPiece('pawn'), ChessPiece('pawn'), ChessPiece('pawn')
-        ]
 
-        self.black_locations = [
-            (0, 0), (1, 0), (2, 0), (3, 0),
-            (4, 0), (5, 0), (6, 0), (7, 0),
-            (0, 1), (1, 1), (2, 1), (3, 1),
-            (4, 1), (5, 1), (6, 1), (7, 1)
-        ]
+        self.white_pieces = dict({
+            (0, 0) : ChessPiece('rook', 0), 
+            (1, 0) : ChessPiece('knight', 0), 
+            (2, 0) : ChessPiece('bishop', 0), 
+            (3, 0) : ChessPiece('king', 0),
+            (4, 0) : ChessPiece('queen', 0), 
+            (5, 0) : ChessPiece('bishop', 0), 
+            (6, 0) : ChessPiece('knight', 0), 
+            (7, 0) : ChessPiece('rook', 0),
+            (0, 1) : ChessPiece('pawn', 0), 
+            (1, 1) : ChessPiece('pawn', 0), 
+            (2, 1) : ChessPiece('pawn', 0), 
+            (3, 1) : ChessPiece('pawn', 0),
+            (4, 1) : ChessPiece('pawn', 0), 
+            (5, 1) : ChessPiece('pawn', 0), 
+            (6, 1) : ChessPiece('pawn', 0), 
+            (7, 1) : ChessPiece('pawn', 0)
+        })
 
-        self.black_pieces = [
-            ChessPiece('rook'), ChessPiece('knight'), ChessPiece('bishop'), ChessPiece('king'),
-            ChessPiece('queen'), ChessPiece('bishop'), ChessPiece('knight'), ChessPiece('rook'),
-            ChessPiece('pawn'), ChessPiece('pawn'), ChessPiece('pawn'), ChessPiece('pawn'),
-            ChessPiece('pawn'), ChessPiece('pawn'), ChessPiece('pawn'), ChessPiece('pawn')
-        ]
-
-        self.white_locations = [
-            (0, 7), (1, 7), (2, 7), (3, 7),
-            (4, 7), (5, 7), (6, 7), (7, 7),
-            (0, 6), (1, 6), (2, 6), (3, 6),
-            (4, 6), (5, 6), (6, 6), (7, 6)
-        ]
+        self.black_pieces = dict({
+            (0, 7) : ChessPiece('rook', 0), 
+            (1, 7) : ChessPiece('knight', 0), 
+            (2, 7) : ChessPiece('bishop', 0), 
+            (3, 7) : ChessPiece('king', 0),
+            (4, 7) : ChessPiece('queen', 0), 
+            (5, 7) : ChessPiece('bishop', 0), 
+            (6, 7) : ChessPiece('knight', 0), 
+            (7, 7) : ChessPiece('rook', 0),
+            (0, 6) : ChessPiece('pawn', 0), 
+            (1, 6) : ChessPiece('pawn', 0), 
+            (2, 6) : ChessPiece('pawn', 0), 
+            (3, 6) : ChessPiece('pawn', 0),
+            (4, 6) : ChessPiece('pawn', 0), 
+            (5, 6) : ChessPiece('pawn', 0), 
+            (6, 6) : ChessPiece('pawn', 0), 
+            (7, 6) : ChessPiece('pawn', 0)
+        })
 
         self.board = 0xFFFF00000000FFFF # square h1 represents 0x0000000000000001, one hexdecimal is 4 bits
         #8  a8 b8 c8 d8 e8 f8 g8 h8
@@ -42,6 +55,13 @@ class Game:
 
         self.turn = 0 # 0 is white and 1 is black
         self.selected_piece = None
+
+    # Return domain Piece at row and col in board else None 
+    def piece_at(self, row, col):
+        if self.turn == 0:
+            return self.white_pieces.get((col,row))
+        else:
+            return self.black_pieces.get((col,row))
 
     def move(self, piece, start, end):
         pass

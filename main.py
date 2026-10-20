@@ -19,11 +19,21 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        # Update game
-        # game.update()
-
         # Draw game
         gui.draw(game)
+
+        if pygame.mouse.get_pressed()[0]: # pygame.mouse.get_pressed() gives (False,False,False) for leftmouse,middlemouse,rightmouse
+            mouse_x,mouse_y = pygame.mouse.get_pos()
+            col = mouse_x // gui.tile_size_w
+            row = mouse_y // gui.tile_size_h
+
+            piece = game.piece_at(row,col)
+            
+            if piece:
+                piece_image = gui.get_image_of_piece(piece)
+                
+                
+
 
     pygame.quit()
 
