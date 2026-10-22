@@ -1,6 +1,7 @@
 import numpy as np
 
 from domain.chesspiece import ChessPiece
+from domain.move import Move
 
 class Game:
     def __init__(self):
@@ -73,6 +74,7 @@ class Game:
 
     def is_valid_move(self, start, end):
         piece = self.piece_at(*start)
+        move = Move(piece,start,end)
         return True
 
     def move_piece(self, start, end):        
