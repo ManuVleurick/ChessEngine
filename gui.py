@@ -47,9 +47,9 @@ class GUI:
     def get_image_of_piece(self, piece):
         return self.images[piece.get_name()]
 
-    def draw(self, game):
+    def draw(self, game, drag_piece, drag_pos):
         self.draw_board()
-        self.draw_pieces(game)
+        self.draw_pieces(game, drag_piece, drag_pos)
 
         pygame.display.flip()
 
@@ -64,10 +64,13 @@ class GUI:
                     (col * 100, row * 100, 100, 100)
                 )
 
-    def draw_pieces(self, game):
+    def draw_pieces(self, game, drag_piece=None, drag_pos=None):
         # White pieces
         for location, piece in game.white_pieces.items():
             image = self.images[f"white_{piece.type}"]
+            if piece is drag_piece: # skip dragged piece
+                self.screen.blit(image, drag_pos)
+                continue
 
             x = location[0] * 100 + 10
             y = location[1] * 100 + 10
@@ -77,8 +80,16 @@ class GUI:
         # Black pieces
         for location, piece in game.black_pieces.items():
             image = self.images[f"black_{piece.type}"]
+            if piece is drag_piece: # skip dragged piece
+                self.screen.blit(image, drag_pos)
+                continue
 
             x = location[0] * 100 + 10
             y = location[1] * 100 + 10
 
             self.screen.blit(image, (x, y))
+
+    def pixel_to_tile(self, x, y):
+        col = x // self.tile_size_w
+        row = y // self.tile_size_h
+        return (col, row)
