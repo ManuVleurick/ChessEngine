@@ -72,6 +72,7 @@ class Game:
         self.board = (self.board & ~start_mask) | end_mask # Uses AND to remove starting loc. Uses OR to add end loc. Reverses mask
 
     def is_valid_move(self, start, end):
+        piece = self.piece_at(*start)
         return True
 
     def move_piece(self, start, end):        
@@ -79,8 +80,10 @@ class Game:
             # update dicts and bitboard
             if self.turn: # Black's turn
                 self.black_pieces[end] = self.black_pieces.pop(start) # update dict
+                self.white_pieces.pop(end, False) # piece is captured and removed
             else: # White's turn
                 self.white_pieces[end] = self.white_pieces.pop(start) 
+                self.black_pieces.pop(end, False) # piece is captured and removed
 
             self.update_bitboard(start, end)
 
