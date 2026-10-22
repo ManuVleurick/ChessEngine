@@ -5,12 +5,12 @@ from domain.chesspiece import ChessPiece
 class Game:
     def __init__(self):
 
-        self.white_pieces = dict({
+        self.black_pieces = dict({
             (0, 0) : ChessPiece('rook', 0),
             (1, 0) : ChessPiece('knight', 0),
             (2, 0) : ChessPiece('bishop', 0), 
-            (3, 0) : ChessPiece('king', 0),
-            (4, 0) : ChessPiece('queen', 0), 
+            (3, 0) : ChessPiece('queen', 0),
+            (4, 0) : ChessPiece('king', 0), 
             (5, 0) : ChessPiece('bishop', 0), 
             (6, 0) : ChessPiece('knight', 0), 
             (7, 0) : ChessPiece('rook', 0),
@@ -24,12 +24,12 @@ class Game:
             (7, 1) : ChessPiece('pawn', 0)
         })
 
-        self.black_pieces = dict({
+        self.white_pieces = dict({
             (0, 7) : ChessPiece('rook', 1), 
             (1, 7) : ChessPiece('knight', 1), 
             (2, 7) : ChessPiece('bishop', 1), 
-            (3, 7) : ChessPiece('king', 1),
-            (4, 7) : ChessPiece('queen', 1), 
+            (3, 7) : ChessPiece('queen', 1),
+            (4, 7) : ChessPiece('king', 1), 
             (5, 7) : ChessPiece('bishop', 1), 
             (6, 7) : ChessPiece('knight', 1), 
             (7, 7) : ChessPiece('rook', 1),
@@ -63,7 +63,13 @@ class Game:
             return self.black_pieces.get((col,row))
 
     def update_bitboard(self,start,end):
-        pass
+        start_col, start_row = start
+        end_col, end_row = end
+        start_square = start_row * 8 + start_col # convert coordinates to int 0-63 to convert to bits
+        end_square = end_row * 8 + end_col
+        start_mask = 1 << start_square # 0-63 bits where only at start_square is 0.
+        end_mask = 1 << end_square
+        self.board = (self.board & ~start_mask) | end_mask # Uses AND to remove starting loc. Uses OR to add end loc. Reverses mask
 
     def is_valid_move(self, start, end):
         return True
@@ -74,7 +80,6 @@ class Game:
             if self.turn: # Black's turn
                 self.black_pieces[end] = self.black_pieces.pop(start) # update dict
             else: # White's turn
-                print(start)
                 self.white_pieces[end] = self.white_pieces.pop(start) 
 
             self.update_bitboard(start, end)
