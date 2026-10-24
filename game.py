@@ -44,7 +44,8 @@ class Game:
             (7, 6) : ChessPiece('pawn', 1)
         })
 
-        self.board = 0xFFFF00000000FFFF # square h1 represents 0x0000000000000001, one hexdecimal is 4 bits
+        self.white_board = 0x000000000000FFFF # square h1 represents 0x0000000000000001, one hexdecimal is 4 bits
+        self.black_board = 0xFFFF000000000000
         #8  a8 b8 c8 d8 e8 f8 g8 h8
         #7  a7 b7 c7 d7 e7 f7 g7 h7
         #6  a6 b6 c6 d6 e6 f6 g6 h6
@@ -68,14 +69,19 @@ class Game:
         end_col, end_row = end
         start_square = start_row * 8 + start_col # convert coordinates to int 0-63 to convert to bits
         end_square = end_row * 8 + end_col
-        start_mask = 1 << start_square # 0-63 bits where only at start_square is 0.
+        start_mask = 1 << start_square # 0-63 bits where only at start_square is 1.
         end_mask = 1 << end_square
-        self.board = (self.board & ~start_mask) | end_mask # Uses AND to remove starting loc. Uses OR to add end loc. Reverses mask
+        if self.turn:
+            self.black_board = (self.black_board & ~start_mask) | end_mask # Uses AND to remove starting loc. Uses OR to add end loc. ~ inverts  mask
+            self.white_board = (self.white_board & ~end_mask) # in case of capture, remove piece from other player
+        else:
+            self.white_board = (self.white_board & ~start_mask) | end_mask
+            self.black_board = (self.black_board & ~end_mask)
 
     def is_valid_move(self, start, end):
         piece = self.piece_at(*start)
-        move = Move(piece,start,end)
-        return True
+        move = Move(piece,start,end, (self.white_board,self.black_board), (self.white_pieces,self.black_pieces), self.turn)
+        return move.is_valid()
 
     def move_piece(self, start, end):        
         if self.is_valid_move(start, end):
