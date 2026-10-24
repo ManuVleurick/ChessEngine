@@ -44,8 +44,8 @@ class Game:
             (7, 6) : ChessPiece('pawn', 1)
         })
 
-        self.white_board = 0x000000000000FFFF # square h1 represents 0x0000000000000001, one hexdecimal is 4 bits
-        self.black_board = 0xFFFF000000000000
+        self.white_board = 0xFFFF000000000000 # square h1 represents 0x0000000000000001, one hexdecimal is 4 bits
+        self.black_board = 0x000000000000FFFF
         #8  a8 b8 c8 d8 e8 f8 g8 h8
         #7  a7 b7 c7 d7 e7 f7 g7 h7
         #6  a6 b6 c6 d6 e6 f6 g6 h6
