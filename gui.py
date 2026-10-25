@@ -72,29 +72,34 @@ class GUI:
                 )
 
     def draw_pieces(self, game):
+        img_dragged_piece = None
         # White pieces
         for location, piece in game.white_pieces.items():
             image = self.images[f"white_{piece.type}"]
             if piece is self.dragged_piece: # skip dragged piece
-                self.screen.blit(image, self.drag_pos)
+                img_dragged_piece = image
                 continue
 
             x = location[0] * 100 + PIECE_MARGIN
             y = location[1] * 100 + PIECE_MARGIN
 
             self.screen.blit(image, (x, y))
+        
 
         # Black pieces
         for location, piece in game.black_pieces.items():
             image = self.images[f"black_{piece.type}"]
             if piece is self.dragged_piece: # skip dragged piece
-                self.screen.blit(image, self.drag_pos)
+                img_dragged_piece = image
                 continue
 
             x = location[0] * 100 + PIECE_MARGIN
             y = location[1] * 100 + PIECE_MARGIN
 
             self.screen.blit(image, (x, y))
+
+        if self.dragged_piece:
+            self.screen.blit(img_dragged_piece, self.drag_pos) # Draw the dragged piece last so it hovers over the other piece's image instead of under
 
     def start_drag(self, mouse_pos, piece):
         col, row = self.pixel_to_tile(*mouse_pos)

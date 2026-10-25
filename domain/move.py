@@ -67,11 +67,32 @@ class Move:
             col += dc
             row += dr
 
-        self.piece.has_moved = True
+        self.piece.has_moved = True       
         return True
 
     def valid_bishop_move(self):
+        start_col, start_row = self.start
+        end_col, end_row = self.end
+
+        if (self.start==self.end): return False # same square
+        if self.has_own(self.end): return False # End square has own piece
+
+        # check diagonal line
+        if not abs(end_col - start_col) == abs(end_row - start_row):
+            return False
+
+        # check not blocked
+        dir_col = 1 if (end_col - start_col > 0) else -1
+        dir_row = 1 if (end_row - start_row > 0) else -1
+        col, row = start_col + dir_col, start_row + dir_row
+        while not (col, row) == (end_col, end_row):
+            if not self.is_empty((col,row)):
+                return False
+            col, row = col + dir_col, row + dir_row
+
+        self.piece.has_moved = True
         return True
+
 
     def valid_knight_move(self):
         return True
