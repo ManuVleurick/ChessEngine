@@ -7,41 +7,41 @@ class Game:
     def __init__(self):
 
         self.black_pieces = dict({
-            (0, 0) : ChessPiece('rook', 0),
-            (1, 0) : ChessPiece('knight', 0),
-            (2, 0) : ChessPiece('bishop', 0), 
-            (3, 0) : ChessPiece('queen', 0),
-            (4, 0) : ChessPiece('king', 0), 
-            (5, 0) : ChessPiece('bishop', 0), 
-            (6, 0) : ChessPiece('knight', 0), 
-            (7, 0) : ChessPiece('rook', 0),
-            (0, 1) : ChessPiece('pawn', 0), 
-            (1, 1) : ChessPiece('pawn', 0), 
-            (2, 1) : ChessPiece('pawn', 0), 
-            (3, 1) : ChessPiece('pawn', 0),
-            (4, 1) : ChessPiece('pawn', 0), 
-            (5, 1) : ChessPiece('pawn', 0), 
-            (6, 1) : ChessPiece('pawn', 0), 
-            (7, 1) : ChessPiece('pawn', 0)
+            (0, 0) : ChessPiece('rook', 1),
+            (1, 0) : ChessPiece('knight', 1),
+            (2, 0) : ChessPiece('bishop', 1), 
+            (3, 0) : ChessPiece('queen', 1),
+            (4, 0) : ChessPiece('king', 1), 
+            (5, 0) : ChessPiece('bishop', 1), 
+            (6, 0) : ChessPiece('knight', 1), 
+            (7, 0) : ChessPiece('rook', 1),
+            (0, 1) : ChessPiece('pawn', 1), 
+            (1, 1) : ChessPiece('pawn', 1), 
+            (2, 1) : ChessPiece('pawn', 1), 
+            (3, 1) : ChessPiece('pawn', 1),
+            (4, 1) : ChessPiece('pawn', 1), 
+            (5, 1) : ChessPiece('pawn', 1), 
+            (6, 1) : ChessPiece('pawn', 1), 
+            (7, 1) : ChessPiece('pawn', 1)
         })
 
         self.white_pieces = dict({
-            (0, 7) : ChessPiece('rook', 1), 
-            (1, 7) : ChessPiece('knight', 1), 
-            (2, 7) : ChessPiece('bishop', 1), 
-            (3, 7) : ChessPiece('queen', 1),
-            (4, 7) : ChessPiece('king', 1), 
-            (5, 7) : ChessPiece('bishop', 1), 
-            (6, 7) : ChessPiece('knight', 1), 
-            (7, 7) : ChessPiece('rook', 1),
-            (0, 6) : ChessPiece('pawn', 1), 
-            (1, 6) : ChessPiece('pawn', 1), 
-            (2, 6) : ChessPiece('pawn', 1),
-            (3, 6) : ChessPiece('pawn', 1),
-            (4, 6) : ChessPiece('pawn', 1), 
-            (5, 6) : ChessPiece('pawn', 1), 
-            (6, 6) : ChessPiece('pawn', 1), 
-            (7, 6) : ChessPiece('pawn', 1)
+            (0, 7) : ChessPiece('rook', 0), 
+            (1, 7) : ChessPiece('knight', 0), 
+            (2, 7) : ChessPiece('bishop', 0), 
+            (3, 7) : ChessPiece('queen', 0),
+            (4, 7) : ChessPiece('king', 0), 
+            (5, 7) : ChessPiece('bishop', 0), 
+            (6, 7) : ChessPiece('knight', 0), 
+            (7, 7) : ChessPiece('rook', 0),
+            (0, 6) : ChessPiece('pawn', 0), 
+            (1, 6) : ChessPiece('pawn', 0), 
+            (2, 6) : ChessPiece('pawn', 0),
+            (3, 6) : ChessPiece('pawn', 0),
+            (4, 6) : ChessPiece('pawn', 0), 
+            (5, 6) : ChessPiece('pawn', 0), 
+            (6, 6) : ChessPiece('pawn', 0), 
+            (7, 6) : ChessPiece('pawn', 0)
         })
 
         self.white_board = 0xFFFF000000000000 # square h1 represents 0x0000000000000001, one hexdecimal is 4 bits
@@ -56,6 +56,7 @@ class Game:
         #1  a1 b1 c1 d1 e1 f1 g1 h1
 
         self.pawn_promoted = None
+        self.en_passant_target = None
 
         self.turn = False # False is white and True is black
 
@@ -80,38 +81,107 @@ class Game:
             self.white_board = (self.white_board & ~start_mask) | end_mask
             self.black_board = (self.black_board & ~end_mask)
 
+    # remove a bit from bitboard. Used for en passant
+    def remove_square_bitboard(self, square):
+        col, row = square
+        square = row * 8 + col
+        mask = 1 << square
+        if self.turn:
+            self.white_board = (self.white_board & ~mask)
+        else:
+            self.black_board = (self.black_board & ~mask)
+
     def is_valid_move(self, start, end):
         piece = self.piece_at(*start)
-        move = Move(piece,start,end, (self.white_board,self.black_board), (self.white_pieces,self.black_pieces), self.turn)
-        if move.is_valid():
-            piece.has_moved = True
-            return True
-        return False
+        if piece:
+            move = Move(piece,start,end, (self.white_board,self.black_board), (self.white_pieces,self.black_pieces), self.en_passant_target, self.turn)
+            return move.is_valid()
 
     def move_piece(self, start, end):
         if self.pawn_promoted: return # pawn has to promote first 
+
         if self.is_valid_move(start, end):
             piece = self.piece_at(*start)
             last_row = 7 if self.turn else 0
+
+            own_pieces = self.black_pieces if self.turn else self.white_pieces
+            enemy_pieces = self.white_pieces if self.turn else self.black_pieces
+
             # update dicts and bitboard
-            if self.turn: # Black's turn
-                self.black_pieces[end] = self.black_pieces.pop(start) # update dict
-                self.white_pieces.pop(end, False) # piece is captured and removed
-            else: # White's turn
-                self.white_pieces[end] = self.white_pieces.pop(start) 
-                self.black_pieces.pop(end, False) # piece is captured and removed
+            own_pieces[end] = own_pieces.pop(start) # update dict
+            if piece.type == "pawn" and self.en_passant_target == end: # en passant was used
+                dir = -1 if self.turn else 1
+                enemy_pieces.pop((end[0],end[1]+dir), False)
+                self.remove_square_bitboard((end[0],end[1]+dir))
+            else:
+                enemy_pieces.pop(end, False) # piece is captured and removed
 
             self.update_bitboard(start, end)
 
+            # pawn promotion detected
             if piece.type == "pawn" and end[1] == last_row:
                 self.pawn_promoted = end
                 return  # don't switch turns yet
 
+            self.en_passant_target = None # reset since en passant only available for one move
+            # En passant is possible
+            if piece.type == "pawn" and abs(end[1] - start[1]) == 2:
+                dir = 1 if self.turn else -1
+                self.en_passant_target = (start[0],start[1]+dir) # square between end and start is targetable
+
+            piece.has_moved = True
             self.turn = not self.turn # other player turn
+            self.print_debug()
 
     def promote(self, choice):  # "queen", "rook", "bishop" or "knight"
         pieces = self.black_pieces if self.turn else self.white_pieces
         pieces[self.pawn_promoted] = ChessPiece(choice, self.turn)
         self.pawn_promoted = None
         self.turn = not self.turn # next player
-        
+        self.print_debug()
+
+    # Debug    
+    def bitboard_to_matrix(self, board):
+        """8x8 list of 0/1; matrix[row][col], row 0 is the top (black's back rank)."""
+        return [[(board >> (row * 8 + col)) & 1 for col in range(8)]
+            for row in range(8)]
+
+    def combined_bitboard_matrix(self):
+        """8x8 matrix: W = white bit, B = black bit, . = empty, ! = both (a bug)."""
+        white = self.bitboard_to_matrix(self.white_board)
+        black = self.bitboard_to_matrix(self.black_board)
+        return [["!" if white[r][c] and black[r][c]
+                 else "W" if white[r][c]
+                 else "B" if black[r][c]
+                 else "." for c in range(8)]
+                for r in range(8)]
+
+    def piece_matrix(self):
+        """8x8 matrix of piece letters: uppercase = white, lowercase = black."""
+        letters = {"pawn": "p", "knight": "n", "bishop": "b",
+                   "rook": "r", "queen": "q", "king": "k"}
+        matrix = [["." for _ in range(8)] for _ in range(8)]
+        for (col, row), piece in self.white_pieces.items():
+            matrix[row][col] = letters[piece.type].upper()
+        for (col, row), piece in self.black_pieces.items():
+            # '!' marks a square present in both dicts, which should never happen
+            matrix[row][col] = "!" if matrix[row][col] != "." else letters[piece.type]
+        return matrix
+
+    def print_debug(self):
+        bits = self.combined_bitboard_matrix()
+        pieces = self.piece_matrix()
+        files = "a b c d e f g h"
+        print(f"  {files}     {files}")
+        print(f"{'BITBOARD':<18}{'PIECES'}")
+        for row in range(8):
+            rank = 8 - row
+            print(f"{rank} {' '.join(bits[row])}   {rank} {' '.join(pieces[row])}")
+
+        # consistency check: the bitboard and the piece dicts must agree on every square
+        for r in range(8):
+            for c in range(8):
+                bit, piece = bits[r][c], pieces[r][c]
+                expected = "." if piece == "." else ("W" if piece.isupper() else "B")
+                if piece == "!" or bit == "!" or bit != expected:
+                    print(f"MISMATCH at {'abcdefgh'[c]}{8 - r}")

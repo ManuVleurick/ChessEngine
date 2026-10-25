@@ -2,7 +2,7 @@
 
 class Move:
 
-    def __init__(self, piece, start, end, boards, pieces, turn):
+    def __init__(self, piece, start, end, boards, pieces, en_passant_target, turn):
         self.piece = piece
         self.start = start # type of (col,row)[(Int,Int)]
         self.end = end
@@ -13,6 +13,8 @@ class Move:
         white_pieces = pieces[0]
         black_pieces = pieces[1]
         self.own_pieces, self.enemy_pieces = (black_pieces, white_pieces) if turn else (white_pieces, black_pieces)
+
+        self.en_passant_target = en_passant_target
 
     def is_valid(self):
         match self.piece.type:
@@ -41,14 +43,12 @@ class Move:
         dir = 1 if self.turn == 1 else -1
         # check if moving one square forward, two squares forward or diagonally
         if (start_row + dir == end_row and (start_col + 1 == end_col or start_col - 1 == end_col)): # diagonally, needs to have enemy
-            return self.has_enemy(self.end) # check if it can capture a piece there
+            return self.has_enemy(self.end) or (self.en_passant_target == self.end) # check if it can capture a piece there or en passant
         elif (start_row + dir == end_row and start_col == end_col): # one square forward
             return self.is_empty(self.end) # check if there is no piece there
         elif start_row + 2*dir == end_row and start_col == end_col and not self.piece.has_moved: # two square forward
             if (self.is_empty((start_col, start_row+dir)) and self.is_empty(self.end)):
                 return True
-        
-        # TODO do promotion outside the Move class and en passant
 
         return False
 
