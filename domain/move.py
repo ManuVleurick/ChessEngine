@@ -121,12 +121,18 @@ class Move:
         if abs(end_col - start_col) <= 1 and abs(end_row - start_row) <= 1:
             return not self.has_own(self.end)
         
-        # TODO castling
-        
+        # castling
+        if abs(end_col - start_col) == 2 and not self.piece.has_moved:
+            dir = 1 if (end_col - start_col > 0) else -1 # 1 is king side and -1 queen side
+            if dir == 1:
+                rook_moved = self.own_pieces((0,0)).has_moved if self.turn else self.own_pieces((7,7)).has_moved
+            else:
+                rook_moved = self.own_pieces((7,0)).has_moved if self.turn else self.own_pieces((0,7)).has_moved
 
+            if not rook_moved:
+                
 
         return False
-
 
 
     def square_mask(self, square):
