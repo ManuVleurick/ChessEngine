@@ -55,11 +55,13 @@ class Game:
         #2  a2 b2 c2 d2 e2 f2 g2 h2
         #1  a1 b1 c1 d1 e1 f1 g1 h1
 
+        self.pawn_promoted = None
+
         self.turn = False # False is white and True is black
 
     # Return domain Piece at row and col in board else None 
     def piece_at(self, col, row):
-        if self.turn == 0:
+        if not self.turn:
             return self.white_pieces.get((col,row))
         else:
             return self.black_pieces.get((col,row))
@@ -81,10 +83,16 @@ class Game:
     def is_valid_move(self, start, end):
         piece = self.piece_at(*start)
         move = Move(piece,start,end, (self.white_board,self.black_board), (self.white_pieces,self.black_pieces), self.turn)
-        return move.is_valid()
+        if move.is_valid():
+            piece.has_moved = True
+            return True
+        return False
 
-    def move_piece(self, start, end):        
+    def move_piece(self, start, end):
+        if self.pawn_promoted: return # pawn has to promote first 
         if self.is_valid_move(start, end):
+            piece = self.piece_at(*start)
+            last_row = 7 if self.turn else 0
             # update dicts and bitboard
             if self.turn: # Black's turn
                 self.black_pieces[end] = self.black_pieces.pop(start) # update dict
@@ -95,5 +103,15 @@ class Game:
 
             self.update_bitboard(start, end)
 
+            if piece.type == "pawn" and end[1] == last_row:
+                self.pawn_promoted = end
+                return  # don't switch turns yet
+
             self.turn = not self.turn # other player turn
+
+    def promote(self, choice):  # "queen", "rook", "bishop" or "knight"
+        pieces = self.black_pieces if self.turn else self.white_pieces
+        pieces[self.pawn_promoted] = ChessPiece(choice, self.turn)
+        self.pawn_promoted = None
+        self.turn = not self.turn # next player
         

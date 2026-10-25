@@ -6,6 +6,8 @@ HEIGHT = 800
 
 PIECE_MARGIN = 10
 
+PROMOTION_CHOICES = ["queen", "rook", "bishop", "knight"]
+
 class GUI:
     def __init__(self):
         pygame.init()
@@ -57,6 +59,8 @@ class GUI:
     def draw(self, game):
         self.draw_board()
         self.draw_pieces(game)
+        if game.pawn_promoted:
+            self.draw_promotion_menu(game.pawn_promoted,game.turn)
 
         pygame.display.flip()
 
@@ -133,3 +137,27 @@ class GUI:
         col = x // self.tile_size_w
         row = y // self.tile_size_h
         return (col, row)
+
+    # Draws rectangles for promotion choice
+    def promotion_rects(self, square):
+        col, row = square
+        direction = 1 if row == 0 else -1   # open toward the board's inside
+        return [
+            (PROMOTION_CHOICES[i],
+            pygame.Rect(col * 100, (row + direction * i) * 100, 100, 100))
+            for i in range(4)
+        ]
+
+    def draw_promotion_menu(self, square, color):  # color: "white" / "black"
+        color = "black" if color else "white"
+        for name, rect in self.promotion_rects(square):
+            pygame.draw.rect(self.screen, "white", rect)
+            pygame.draw.rect(self.screen, "black", rect, 2)  # border
+            self.screen.blit(self.images[f"{color}_{name}"],
+                            (rect.x + PIECE_MARGIN, rect.y + PIECE_MARGIN))
+
+    def promotion_choice_at(self,pos,square):
+        for name, rect in self.promotion_rects(square):
+                if rect.collidepoint(pos):
+                    return name
+        return None

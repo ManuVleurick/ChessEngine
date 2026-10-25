@@ -10,8 +10,9 @@ class Move:
         black_board = boards[1]
         self.turn = turn
         self.own_board, self.enemy_board = (black_board,white_board) if turn else (white_board,black_board)
-        self.white_pieces = pieces[0]
-        self.black_pieces = pieces[1]
+        white_pieces = pieces[0]
+        black_pieces = pieces[1]
+        self.own_pieces, self.enemy_pieces = (black_pieces, white_pieces) if turn else (white_pieces, black_pieces)
 
     def is_valid(self):
         match self.piece.type:
@@ -29,6 +30,7 @@ class Move:
                 return self.valid_king_move()
             case _:
                 raise Exception(f"Chess piece {self.piece} unknown")
+            # Globally when piece has moved, check if king is in check then not valid move
 
     def valid_pawn_move(self):
         start_col, start_row = self.start
@@ -39,17 +41,14 @@ class Move:
         dir = 1 if self.turn == 1 else -1
         # check if moving one square forward, two squares forward or diagonally
         if (start_row + dir == end_row and (start_col + 1 == end_col or start_col - 1 == end_col)): # diagonally, needs to have enemy
-            self.piece.has_moved = True
             return self.has_enemy(self.end) # check if it can capture a piece there
         elif (start_row + dir == end_row and start_col == end_col): # one square forward
-            self.piece.has_moved = True
             return self.is_empty(self.end) # check if there is no piece there
         elif start_row + 2*dir == end_row and start_col == end_col and not self.piece.has_moved: # two square forward
             if (self.is_empty((start_col, start_row+dir)) and self.is_empty(self.end)):
-                self.piece.has_moved = True
                 return True
         
-        # TODO do promotion outside the Move class
+        # TODO do promotion outside the Move class and en passant
 
         return False
 
@@ -70,8 +69,7 @@ class Move:
                 return False
             col += dc
             row += dr
-
-        self.piece.has_moved = True       
+     
         return True
 
     def valid_bishop_move(self):
@@ -95,7 +93,6 @@ class Move:
                 return False
             col, row = col + dir_col, row + dir_row
 
-        self.piece.has_moved = True
         return True
 
 
@@ -103,7 +100,7 @@ class Move:
         start_col, start_row = self.start
         end_col, end_row = self.end
         # Check 8 position if not has_own and in_board
-        if not self.in_board(self.end): return False # Move goes outside boardZ
+        if not self.in_board(self.end): return False # Move goes outside board
 
         if abs(end_col - start_col) == 2 and abs(end_row - start_row) == 1:
             return not self.has_own(self.end)
@@ -116,7 +113,21 @@ class Move:
         return self.valid_bishop_move() or self.valid_rook_move()
 
     def valid_king_move(self):
-        return True
+        start_col, start_row = self.start
+        end_col, end_row = self.end
+
+        if not self.in_board(self.end): return False # Move goes outside board
+
+        if abs(end_col - start_col) <= 1 and abs(end_row - start_row) <= 1:
+            return not self.has_own(self.end)
+        
+        # TODO castling
+        
+
+
+        return False
+
+
 
     def square_mask(self, square):
         col, row = square

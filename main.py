@@ -20,7 +20,7 @@ def main():
                 running = False
 
             # Pick up
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not game.pawn_promoted:
 
                 col, row = gui.pixel_to_tile(*event.pos)
                 piece = game.piece_at(col, row)
@@ -33,11 +33,17 @@ def main():
 
             # Drop
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                result = gui.end_drag(event.pos)
-                if result:
-                    origin, target = result
-                    if target != origin:
-                        game.move_piece(origin, target) # Will check first then update game
+                if game.pawn_promoted:
+                    choice = gui.promotion_choice_at(event.pos, game.pawn_promoted)
+                    if choice:
+                        game.promote(choice)
+                else:
+                    result = gui.end_drag(event.pos)
+                    if result:
+                        origin, target = result
+                        if target != origin:
+                            game.move_piece(origin, target) # Will check first then update game
+                
 
         gui.draw(game)
                 
