@@ -145,7 +145,6 @@ class Move:
                     return False
 
             return True
-                
 
         return False
 

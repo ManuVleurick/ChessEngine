@@ -129,6 +129,20 @@ class Game:
                 dir = 1 if self.turn else -1
                 self.en_passant_target = (start[0],start[1]+dir) # square between end and start is targetable
 
+            # detect castling
+            is_castling = piece.type == "king" and abs(end[0] - start[0]) == 2
+            if is_castling:
+                dir = 1 if end[0] > start[0] else -1
+                rook_start_col = 7 if dir == 1 else 0
+                rook_start_row = start[1]
+                rook_end_col = (start[0] + end[0]) // 2
+
+                own_pieces[(rook_end_col,rook_start_row)] = own_pieces.pop((rook_start_col,rook_start_row))
+                self.update_bitboard((rook_start_col,rook_start_row),(rook_end_col,rook_start_row))
+
+                rook = own_pieces.get((rook_end_col,rook_start_row))
+                rook.has_moved = True
+
             piece.has_moved = True
             self.turn = not self.turn # other player turn
             self.print_debug()
