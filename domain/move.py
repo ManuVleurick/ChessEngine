@@ -122,17 +122,35 @@ class Move:
             return not self.has_own(self.end)
         
         # castling
-        if abs(end_col - start_col) == 2 and not self.piece.has_moved:
+        if abs(end_col - start_col) == 2 and not self.piece.has_moved and start_col == 4:
+            king_row = 0 if self.turn else 7
+            if not king_row == start_row or self.is_square_attacked(self.start): # check if king is on starting row and is not in check
+                return False
             dir = 1 if (end_col - start_col > 0) else -1 # 1 is king side and -1 queen side
             if dir == 1:
-                rook_moved = self.own_pieces((0,0)).has_moved if self.turn else self.own_pieces((7,7)).has_moved
+                rook_moved = self.own_pieces[(0,0)].has_moved if self.turn else self.own_pieces[(7,7)].has_moved
+                # empty squares between king and rook checked if empty and not attacked
+                if not rook_moved:
+                    col = start_col + dir
+                    while (col, start_row) != (end_col, end_row):  # stop before the end square
+                        if not self.is_empty((col, start_row)) and not self.is_square_attacked((col,start_row)):
+                            return False
+                        col += dir
             else:
-                rook_moved = self.own_pieces((7,0)).has_moved if self.turn else self.own_pieces((0,7)).has_moved
-
-            if not rook_moved:
+                rook_moved = self.own_pieces[(7,0)].has_moved if self.turn else self.own_pieces[(0,7)].has_moved
+                if not rook_moved:
+                    col = start_col + dir
+                    while (col, start_row) != (end_col+1, end_row):  # stop before the end square
+                        if not self.is_empty((col, start_row)) and not self.is_square_attacked((col,start_row)):
+                            return False
+                        col += dir
                 
 
+
         return False
+
+    def is_square_attacked(self, square):
+        pass
 
 
     def square_mask(self, square):
