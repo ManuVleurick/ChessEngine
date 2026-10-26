@@ -32,7 +32,6 @@ class Move:
                 return self.valid_king_move()
             case _:
                 raise Exception(f"Chess piece {self.piece} unknown")
-            # Globally when piece has moved, check if king is in check then not valid move
 
     def valid_pawn_move(self):
         start_col, start_row = self.start
@@ -151,7 +150,19 @@ class Move:
         return False
 
     def is_square_attacked(self, square):
-        pass
+        for piece_square, piece in self.enemy_pieces.items():
+            if piece.type == "pawn":
+                dir = 1 if not self.turn == 1 else -1 # enemy pawn dir
+                if (piece_square[1] + dir == square[1] and (piece_square[0] + 1 == square[0] or piece_square[0] - 1 == square[0])): # diagonally
+                    return True
+            elif piece.type == "king":
+                if max(abs(piece_square[0] - square[0]), abs(piece_square[1] - square[1])) == 1: # adjacent to square
+                    return True
+            else:
+                move = Move(piece,piece_square,square,(self.enemy_board,self.own_board),(self.enemy_pieces,self.own_pieces),self.en_passant_target,not self.turn)
+                if move.is_valid():
+                    return True
+        return False
 
 
     def square_mask(self, square):
