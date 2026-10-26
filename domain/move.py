@@ -122,30 +122,31 @@ class Move:
             return not self.has_own(self.end)
         
         # castling
-        if abs(end_col - start_col) == 2 and not self.piece.has_moved and start_col == 4:
+        if abs(end_col - start_col) == 2 and end_row == start_row and not self.piece.has_moved and start_col == 4:
             king_row = 0 if self.turn else 7
-            if not king_row == start_row or self.is_square_attacked(self.start): # check if king is on starting row and is not in check
+            if start_row != king_row or self.is_square_attacked(self.start): # if king is in check or not on the starting row of the king then return False
                 return False
-            dir = 1 if (end_col - start_col > 0) else -1 # 1 is king side and -1 queen side
-            if dir == 1:
-                rook_moved = self.own_pieces[(0,0)].has_moved if self.turn else self.own_pieces[(7,7)].has_moved
-                # empty squares between king and rook checked if empty and not attacked
-                if not rook_moved:
-                    col = start_col + dir
-                    while (col, start_row) != (end_col, end_row):  # stop before the end square
-                        if not self.is_empty((col, start_row)) and not self.is_square_attacked((col,start_row)):
-                            return False
-                        col += dir
-            else:
-                rook_moved = self.own_pieces[(7,0)].has_moved if self.turn else self.own_pieces[(0,7)].has_moved
-                if not rook_moved:
-                    col = start_col + dir
-                    while (col, start_row) != (end_col+1, end_row):  # stop before the end square
-                        if not self.is_empty((col, start_row)) and not self.is_square_attacked((col,start_row)):
-                            return False
-                        col += dir
-                
 
+            dir = 1 if end_col > start_col else -1
+            rook_col = 7 if dir == 1 else 0
+            rook = self.own_pieces.get((rook_col, start_row))
+            if rook is None or rook.type != "rook" or rook.has_moved:
+                return False
+
+            # squares between king and rook must be empty
+            col = start_col + dir
+            while col != rook_col:
+                if not self.is_empty((col, start_row)):
+                    return False
+                col += dir
+
+            # squares the king passes through / lands on must not be attacked
+            for col in (start_col + dir, start_col + 2*dir):
+                if self.is_square_attacked((col, start_row)):
+                    return False
+
+            return True
+                
 
         return False
 
