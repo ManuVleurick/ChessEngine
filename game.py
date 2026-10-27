@@ -95,7 +95,7 @@ class Game:
         piece = self.piece_at(*start)
         if piece:
             move = Move(piece,start,end, (self.white_board,self.black_board), (self.white_pieces,self.black_pieces), self.en_passant_target, self.turn)
-            return move.is_valid()
+            return move.is_valid() and not move.king_under_attack()
 
     def move_piece(self, start, end):
         if self.pawn_promoted: return # pawn has to promote first 
@@ -153,6 +153,17 @@ class Game:
         self.pawn_promoted = None
         self.turn = not self.turn # next player
         self.print_debug()
+
+
+    def get_all_valid_moves(self, start):
+        moves = []
+        piece = self.piece_at(*start)
+        for row in range(8):
+            for col in range(8):
+                move = Move(piece,start,(col,row),(self.white_board,self.black_board), (self.white_pieces,self.black_pieces), self.en_passant_target, self.turn)
+                if move.is_valid():
+                    moves.append(move)
+        return moves
 
     # Debug    
     def bitboard_to_matrix(self, board):

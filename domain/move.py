@@ -158,10 +158,45 @@ class Move:
                 if max(abs(piece_square[0] - square[0]), abs(piece_square[1] - square[1])) == 1: # adjacent to square
                     return True
             else:
-                move = Move(piece,piece_square,square,(self.enemy_board,self.own_board),(self.enemy_pieces,self.own_pieces),self.en_passant_target,not self.turn)
+                if self.turn:
+                    boards, pieces = (self.enemy_board, self.own_board), (self.enemy_pieces, self.own_pieces)
+                else:
+                    boards, pieces = (self.own_board, self.enemy_board), (self.own_pieces, self.enemy_pieces)
+                move = Move(piece,piece_square,square,boards,pieces,self.en_passant_target,not self.turn)
                 if move.is_valid():
                     return True
         return False
+
+    def king_under_attack(self):
+        # assume move has been made, so piece is at end square
+        own_board, enemy_board = self.own_board, self.enemy_board
+        own_pieces, enemy_pieces = dict(self.own_pieces), dict(self.enemy_pieces)  # copies
+
+        # make the move
+        own_pieces.pop(self.start)
+        own_pieces[self.end] = self.piece
+        own_board = (own_board & ~self.square_mask(self.start)) | self.square_mask(self.end)
+
+        # captures (en passant removes a pawn that isn't on the end square)
+        if (self.piece.type == "pawn" and self.end == self.en_passant_target
+                and self.start[0] != self.end[0]):
+            captured = (self.end[0], self.start[1])
+        else:
+            captured = self.end
+        if captured in enemy_pieces:
+            enemy_pieces.pop(captured)
+            enemy_board &= ~self.square_mask(captured)
+
+        king_square = next(sq for sq, p in own_pieces.items() if p.type == "king")
+
+        # rebuild in (white, black) order
+        if self.turn:
+            boards, pieces = (enemy_board, own_board), (enemy_pieces, own_pieces)
+        else:
+            boards, pieces = (own_board, enemy_board), (own_pieces, enemy_pieces)
+
+        after = Move(self.piece, self.start, self.end, boards, pieces, None, self.turn)
+        return after.is_square_attacked(king_square)
 
 
     def square_mask(self, square):
