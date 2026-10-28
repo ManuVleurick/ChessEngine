@@ -24,10 +24,19 @@ class GUI:
         self.tile_size_w = WIDTH // 8
         self.tile_size_h = HEIGHT // 8
 
+        self.highlight_surface = pygame.Surface((self.tile_size_w, self.tile_size_h), pygame.SRCALPHA) # sprite to draw on available squares when pikcing up piece
+        pygame.draw.circle(
+            self.highlight_surface,
+            (0, 0, 0, 70), # low transparancy
+            (self.tile_size_w // 2, self.tile_size_h // 2),  
+            self.tile_size_w // 6 # radius
+        )
+
         self.dragged_piece = None
         self.drag_pos = None
         self.grab_offset = (0, 0)
         self.origin = None
+        self.highlighted_squares = []
 
     def load_images(self):
         images = {}
@@ -61,6 +70,7 @@ class GUI:
         self.draw_pieces(game)
         if game.pawn_promoted:
             self.draw_promotion_menu(game.pawn_promoted,game.turn)
+        self.draw_highlighted_squares()
 
         pygame.display.flip()
 
@@ -105,7 +115,13 @@ class GUI:
         if self.dragged_piece:
             self.screen.blit(img_dragged_piece, self.drag_pos) # Draw the dragged piece last so it hovers over the other piece's image instead of under
 
-    def start_drag(self, mouse_pos, piece):
+    def draw_highlighted_squares(self):
+        for square in self.highlighted_squares:
+            col, row = square.end
+            x,y = col*self.tile_size_w,row*self.tile_size_h
+            self.screen.blit(self.highlight_surface,(x,y))
+
+    def start_drag(self, mouse_pos, piece, highlighted_squares):
         col, row = self.pixel_to_tile(*mouse_pos)
         mouse_x, mouse_y = mouse_pos
         self.dragged_piece = piece
@@ -115,6 +131,7 @@ class GUI:
             mouse_x - (col * self.tile_size_w + PIECE_MARGIN),
             mouse_y - (row * self.tile_size_h + PIECE_MARGIN),
         )
+        self.highlighted_squares = highlighted_squares
         self.update_drag(mouse_pos) # Update drag_pos
 
     def update_drag(self,mouse_pos):
@@ -131,6 +148,7 @@ class GUI:
         self.dragged_piece = None
         self.drag_pos = None
         self.origin = None
+        self.highlighted_squares = []
         return result
 
     def pixel_to_tile(self, x, y):

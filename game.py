@@ -161,7 +161,7 @@ class Game:
         for row in range(8):
             for col in range(8):
                 move = Move(piece,start,(col,row),(self.white_board,self.black_board), (self.white_pieces,self.black_pieces), self.en_passant_target, self.turn)
-                if move.is_valid():
+                if move.is_valid() and not move.king_under_attack():
                     moves.append(move)
         return moves
 

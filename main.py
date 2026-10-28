@@ -25,7 +25,8 @@ def main():
                 col, row = gui.pixel_to_tile(*event.pos)
                 piece = game.piece_at(col, row)
                 if piece:
-                    gui.start_drag(event.pos, piece)
+                    highlighted_squares = game.get_all_valid_moves((col,row))
+                    gui.start_drag(event.pos, piece, highlighted_squares)
 
             # Move
             elif event.type == pygame.MOUSEMOTION:
